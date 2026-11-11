@@ -33,6 +33,21 @@ def softmax(values: list[float]) -> list[float]:
     return [w / total for w in weights]
 
 
+def parse_distribution(content: str) -> dict:
+    text = content.strip()
+    if text.startswith("```"):
+        lines = [ln for ln in text.splitlines() if not ln.startswith("```")]
+        text = "\n".join(lines).strip()
+    start = text.find("{")
+    end = text.rfind("}")
+    if start < 0 or end <= start:
+        raise RuntimeError(f"no JSON object in model output: {content[:200]!r}")
+    try:
+        return json.loads(text[start:end + 1])
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"model output was truncated: {content[:200]!r}") from exc
+
+
 def lmstudio_score(base_url: str, model: str, row: dict, temperature: float = 0.0) -> dict:
     validate(row)
     started = time.perf_counter()
@@ -51,7 +66,7 @@ def lmstudio_score(base_url: str, model: str, row: dict, temperature: float = 0.
             }, ensure_ascii=False)},
         ],
         "temperature": temperature,
-        "max_tokens": 256,
+        "max_tokens": 1024,
         "stream": False,
         "response_format": {
             "type": "json_schema",
@@ -84,7 +99,7 @@ def lmstudio_score(base_url: str, model: str, row: dict, temperature: float = 0.
     with urllib.request.urlopen(request, timeout=600) as response:
         data = json.load(response)
 
-    parsed = json.loads(data["choices"][0]["message"]["content"])
+    parsed = parse_distribution(data["choices"][0]["message"]["content"])
     raw = parsed["probabilities"]
     values = [float(raw[o["id"]]) for o in row["options"]]
     if any(not math.isfinite(v) or v < 0 for v in values):

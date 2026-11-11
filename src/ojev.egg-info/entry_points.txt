@@ -1,0 +1,2 @@
+[console_scripts]
+ojev = ojev.cli:main

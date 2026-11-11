@@ -1,0 +1,15 @@
+schema_version: "1.0"
+kind: "project"
+id: "ojev"
+name: "ojev"
+description: "OpenJev-style semantic decision scoring for ordinary CPU machines."
+loadable: false
+status: "declared_no_SKILL_md"
+repository: ""
+languages: ["Python"]
+entrypoints: ["pyproject.toml"]
+nested_skills: []
+files_excl_git: 15
+bytes_excl_git: 22889
+notes: "Lives under skills/ but has no SKILL.md, so opencode does not load it. Declared here for inventory; add SKILL.md to promote it."
+generated_by: "soubi/inventory"
